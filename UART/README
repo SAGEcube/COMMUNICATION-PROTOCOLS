@@ -1,0 +1,115 @@
+# UART Transmitter and Receiver – SystemVerilog
+
+## Overview
+This project implements a **UART (Universal Asynchronous Receiver Transmitter)** using **SystemVerilog**, including both **TX and RX modules** with a self-checking testbench.  
+The design is verified through waveform analysis and console logs, confirming correct data transmission and reception.
+
+---
+
+## Features
+- UART Transmitter (TX)
+- UART Receiver (RX)
+- Configurable baud rate using clock divider
+- Busy and ready handshaking signals
+- Start bit, data bits, and stop bit handling
+- Self-checking testbench
+- Verified with waveform and simulation logs
+
+---
+
+## Specifications
+- **Clock Frequency:** 50 MHz  
+- **Clock Period:** 20 ns  
+- **Baud Rate (derived):** Based on enable pulse generation  
+- **Data Width:** 8 bits  
+- **Parity:** None  
+- **Stop Bits:** 1  
+
+---
+
+## Signal Description
+
+### Common Signals
+| Signal | Direction | Description |
+|------|----------|-------------|
+| clk | Input | System clock |
+| rst | Input | Active-high reset |
+
+### Transmitter Signals
+| Signal | Direction | Description |
+|------|----------|-------------|
+| tx_enb | Input | Start transmission enable |
+| data_in[7:0] | Input | Data to transmit |
+| tx | Output | Serial transmit line |
+| busy | Output | High during transmission |
+
+### Receiver Signals
+| Signal | Direction | Description |
+|------|----------|-------------|
+| rx_enb | Input | Receiver sampling enable |
+| rx | Input | Serial receive line |
+| data_out[7:0] | Output | Received data |
+| rdy | Output | Data valid indicator |
+| rdy_clr | Input | Clear ready flag |
+
+---
+
+## Functional Description
+
+### Transmitter
+- Transmission starts when `tx_enb` is asserted.
+- A **start bit (0)** is sent first.
+- Followed by **8 data bits (LSB first)**.
+- Ends with a **stop bit (1)**.
+- `busy` remains high during transmission.
+
+### Receiver
+- Detects the start bit on `rx`.
+- Samples data bits using `rx_enb`.
+- Assembles received byte.
+- Asserts `rdy` once a full byte is received.
+- Output data remains stable until `rdy_clr` is asserted.
+
+---
+
+## Testbench Description
+- Applies reset and initializes signals.
+- Sends multiple test bytes (e.g., `0x41`, `0x55`).
+- Monitors TX/RX behavior.
+- Automatically checks received data against transmitted data.
+- Displays pass/fail messages in the simulation console.
+
+---
+
+## Simulation Results
+- Correct start, data, and stop bit timing observed.
+- `busy` signal active during TX operation.
+- `rdy` asserted only after full byte reception.
+- Received data matches transmitted data.
+- All test cases passed successfully.
+
+---
+
+## Tools Used
+- **Language:** SystemVerilog
+- **Simulator:** Vivado / ModelSim / QuestaSim (any SV-compliant simulator)
+- **Waveform Viewer:** Vivado Wave / GTKWave
+
+---
+
+## How to Run
+1. Compile all RTL and testbench files.
+2. Run simulation.
+3. Observe console logs for PASS/FAIL messages.
+4. View waveform to verify UART timing.
+
+---
+
+## Conclusion
+The UART transmitter and receiver function correctly with accurate timing and reliable data transfer.  
+This design is suitable for academic projects, interviews, and further extension (parity, FIFO, interrupts).
+
+---
+
+## Author
+Designed and verified by **Sandesh Jat**
