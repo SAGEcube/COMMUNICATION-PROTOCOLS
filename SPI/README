@@ -1,0 +1,137 @@
+# SPI Master (FSM-Based) – Verilog Implementation & Testbench
+
+## 📌 Overview
+This project implements a **basic SPI Master transmitter** using **Finite State Machine (FSM)** logic in Verilog.  
+It serially transmits **16-bit parallel input data** over the SPI bus using:
+- Active-low Chip Select
+- Generated SPI clock
+- MOSI data line
+
+A simple **testbench** is included to verify correct timing, data shifting, and signal behavior.
+
+---
+
+## 🔧 SPI Features Implemented
+
+- **SPI Mode**:  
+  - Clock idle low (CPOL = 0)  
+  - Data valid on rising edge (CPHA = 0)
+
+- **Transmission Width**: 16 bits
+- **Interface Signals**:
+  - `CS_L` – Active-low chip select
+  - `SCLK` – SPI clock
+  - `MOSI` – Master Out Slave In
+- **FSM Controlled Transfer**
+- **Asynchronous Reset Support**
+
+---
+
+## 🧱 Module Description
+
+---
+
+### 1️⃣ `spi_state` (SPI Master)
+
+#### 📥 Inputs
+| Signal | Width | Description |
+|------|------|-------------|
+| `clk` | 1 | System clock |
+| `reset` | 1 | Asynchronous reset |
+| `datain` | 16 | Parallel data to transmit |
+
+#### 📤 Outputs
+| Signal | Width | Description |
+|------|------|-------------|
+| `spi_cs_l` | 1 | Active-low chip select |
+| `spi_sclk` | 1 | SPI serial clock |
+| `spi_data` | 1 | MOSI output |
+| `counter` | 5 | Bit counter (debug) |
+
+---
+
+### 🔄 FSM State Description
+
+| State | Function |
+|-----|---------|
+| `0` | Idle state, CS inactive |
+| `1` | Load data bit & decrement counter |
+| `2` | Toggle clock high, check transfer completion |
+
+---
+
+### 🔁 FSM Operation Flow
+
+1. **Idle State**
+   - `CS_L = 1`
+   - `SCLK = 0`
+
+2. **Start Transfer**
+   - `CS_L` asserted low
+   - Data bit loaded from `datain[count-1]`
+
+3. **Clock Pulse**
+   - `SCLK` goes high
+   - If bits remain → continue shifting
+   - If finished → reset counter & return to IDLE
+
+---
+
+## ⏱ Timing Behavior
+
+- One SPI bit transfer = **2 clock cycles**
+- Entire 16-bit transfer = **32 clock cycles**
+- Clock period = **10 ns** (from testbench)
+
+---
+
+## 🧪 Testbench Description
+
+### 2️⃣ `test_bench`
+
+The testbench verifies:
+- Clock generation
+- Reset behavior
+- Multiple SPI transfers
+
+---
+
+### 🧾 Testbench Stimulus
+
+| Time (ns) | Operation |
+|---------|-----------|
+| 0 | Reset asserted |
+| 10 | Reset deasserted |
+| 20 | Load `16'h0412` |
+| 355 | Load `16'h4839` |
+| 690 | Load `16'habeb` |
+
+Each new `datain` value triggers a **fresh SPI transmission**.
+
+---
+
+## 🔍 Signals Observed in Simulation
+
+- `spi_cs_l` – Goes low during active transfer
+- `spi_sclk` – Toggles for each bit
+- `spi_data` – Serial output of `datain`
+- `counter` – Counts remaining bits
+
+---
+
+## 📊 Expected Waveform Behavior
+
+- `CS_L` stays low during full 16-bit transfer
+- `SCLK` pulses once per bit
+- `MOSI` outputs MSB first
+- Counter decrements from 16 → 0
+
+---
+
+## ▶ How to Simulate
+
+### Example using Icarus Verilog
+```bash
+iverilog -o spi_sim spi_state.v test_bench.v
+vvp spi_sim
+gtkwave dump.vcd
